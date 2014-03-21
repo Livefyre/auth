@@ -1,0 +1,28 @@
+{
+  "name": "auth",
+  "description": "Authentication for Livefyre projects",
+  "author": "Livefyre <support@livefyre.com>",
+  "repository": "https://github.com/Livefyre/auth",
+  "contributors": {
+    "name": "Benjamin Goering",
+    "email": "ben@livefyre.com"
+  },
+  "version": "0.0.0-pre.0",
+  "devDependencies": {
+    "bower": "*",
+    "chai": "1.8.1",
+    "express": "*",
+    "jshint": "~1.1.0",
+    "mocha": "1.14.0",
+    "mocha-phantomjs": "3.1.6",
+    "phantomjs": "*",
+    "requirejs": "2.1.9"
+  },
+  "scripts": {
+    "build": "./node_modules/requirejs/bin/r.js -o ./build.conf.js",
+    "hint": "./node_modules/jshint/bin/jshint src/ test/spec/; echo",
+    "postinstall": "./node_modules/bower/bin/bower install",
+    "start": "node ./server.js",
+    "test": "./bin/test"
+  }
+}

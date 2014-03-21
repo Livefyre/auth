@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+ARGS="${*:1}"
+
+# Directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Start an HTTP Server
+node $DIR/../server.js & HTTP_SERVER_PID=$!
+
+# Run mocha-phantomjs
+$DIR/../node_modules/mocha-phantomjs/bin/mocha-phantomjs $ARGS http://localhost:8090/test/runner.html
+
+# Kill the webserver
+kill $HTTP_SERVER_PID

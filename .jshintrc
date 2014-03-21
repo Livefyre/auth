@@ -1,0 +1,29 @@
+{
+    "browser": true,
+    "globals": {
+        "require": true,
+        "module": true,
+        "it": true,
+        "describe": true,
+        "assert": true,
+        "chai": true,
+        "beforeEach": true,
+        "before": true,
+        "after": true,
+        "Livefyre": true
+    },
+    "forin": true,
+    "curly": true,
+    "eqeqeq": true,
+    "immed": true,
+    "smarttabs": true,
+    "latedef": "nofunc",
+    "newcap": true,
+    "noarg": true,
+    "undef": true,
+    "unused": "vars",
+    "strict": false,
+    "boss": true,
+    "sub": true,
+    "expr": true
+}
