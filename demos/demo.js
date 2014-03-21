@@ -4,9 +4,11 @@ var log = require('debug')('auth-demo');
 auth.delegate({
     login: function () {
         log('login', arguments);
+        auth.user.set({ id: '1' });
     },
     logout: function () {
         log('logout', arguments);
+        auth.user.set({ id: null });
     }
 });
 
@@ -24,28 +26,29 @@ function onDomReady() {
 }
 
 function authButton (el) {
-    var loggedIn = false;
+    function isLoggedIn () {
+        return auth.user.isAuthenticated();
+    }
     function getText () {
-        return loggedIn ? 'Log out' : 'Log in';
+        return isLoggedIn() ? 'Log out' : 'Log in';
     }
     function setText () {
         el.innerText = getText();
     }
     function toggle () {
-        log('toggle', loggedIn);
-        if (loggedIn) {
+        log('toggle', isLoggedIn());
+        if (isLoggedIn()) {
             logOut();
         } else {
             logIn();
         }
+        setText();
     }
     function logIn() {
         auth.login();
-        loggedIn = true;
     }
     function logOut() {
         auth.logout();
-        loggedIn = false;
     }
     log('init authButton');
     el.addEventListener('click', function onClick (e) {
