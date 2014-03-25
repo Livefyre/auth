@@ -16,13 +16,14 @@
     "mocha": "1.14.0",
     "mocha-phantomjs": "3.1.6",
     "phantomjs": "*",
-    "requirejs": "2.1.9"
+    "requirejs": "2.1.9",
+    "http-server": "^0.6.1"
   },
   "scripts": {
     "build": "./node_modules/requirejs/bin/r.js -o ./build.conf.js",
     "hint": "./node_modules/jshint/bin/jshint src/ test/spec/; echo",
     "postinstall": "./node_modules/bower/bin/bower install",
-    "start": "node ./server.js",
+    "start": "./node_modules/http-server/bin/http-server",
     "test": "./bin/test"
   }
 }

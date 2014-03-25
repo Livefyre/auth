@@ -15,17 +15,18 @@ auth.delegate({
 if (document.readyState === 'complete') {
     onDomReady();
 } else {
-    debugger;
     document.addEventListener("DOMContentLoaded", onDomReady);
 }
 
+var authLog;
 function onDomReady() {
     log('onDomReady');
-    authButton(document.getElementById('auth-button'));
-    authLog(document.getElementById('auth-log'));
+    createAuthButton(document.getElementById('auth-button'));
+    authLog = createAuthLog(document.getElementById('auth-log'));
+    authLog('dom ready');
 }
 
-function authButton (el) {
+function createAuthButton (el) {
     function isLoggedIn () {
         return auth.user.isAuthenticated();
     }
@@ -50,14 +51,14 @@ function authButton (el) {
     function logOut() {
         auth.logout();
     }
-    log('init authButton');
+    log('init createAuthButton');
     el.addEventListener('click', function onClick (e) {
         toggle();
     });
 }
 
-function authLog(el) {
-    function log (message) {
+function createAuthLog(el) {
+    function authLog (message) {
         var logEl = document.createElement('p');
         logEl.innerText = message;
         el.appendChild(logEl);
@@ -66,4 +67,5 @@ function authLog(el) {
     var onLogout = log.bind(this, 'Logged out');
     auth.on('login', onLogin);
     auth.on('logout', onLogout);
+    return authLog;
 }

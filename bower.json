@@ -11,5 +11,7 @@
     "js-md5": "~1.1.0",
     "sinonjs": "~1.7.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "debug": "visionmedia/debug#~0.7.4"
+  }
 }
