@@ -33,7 +33,16 @@ use the `.delegate` method to configure this Auth object by passing an
         }
     });
 
-A Web Component developer may 
+A Web Component developer may wish to be notified when end-user authentication
+status changes. For example, certain actions may only be enabled if the user
+is authenticated. Or if the user is not authenticated, the component may wish
+to render a 'Log in' link.
+
+For these purposes, component developers can listen for events emitted by an
+Auth object
+
+    auth.on('login', setUserLoggedIn.bind(this, true));
+    auth.on('logout', setUserLoggedIn.bind(this, false))
 
 */
 
