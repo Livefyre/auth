@@ -18,11 +18,19 @@ use the `.delegate` method to configure this Auth object by passing an
     auth.delegate({
         // Called when a component would like to authenticate the end-user
         // You may want to redirect to a login page, or open a popup
-        login: function () {},
+        // Call `finishLogin` when login is complete, passing an Error object
+        // if there was an error
+        login: function (finishLogin) {
+            finishLogin();
+        },
 
         // Called when a component would like to deauthenticate the end-user
         // You may want to clear a cookie
-        logout: function () {}
+        // Call `finishLogout` when logout is complete, passing an Error object
+        // if there was an error
+        logout: function (finishLogout) {
+            finishLogout();
+        }
     });
 
 A Web Component developer may 
@@ -34,6 +42,14 @@ A Web Component developer may
 var inherits = require('inherits');
 var EventEmitter = require('event-emitter');
 var log = require('debug')('auth');
+
+/**
+ * Create an Auth object
+ * @param [opts] {object} Options to configure the Auth object
+ */
+module.exports = function createAuth(opts) {
+    return new Auth(opts);
+};
 
 /**
  * An object which other components can use to trigger and monitor
@@ -74,7 +90,18 @@ Auth.prototype.delegate = function (opts) {
  */
 Auth.prototype.login = function () {
     log('Auth#login');
-    this._delegatee.login.apply(this._delegatee, arguments);
+    var finishLogin = this._finishLogin.bind(this);
+    this._delegatee.login.call(this._delegatee, finishLogin);
+};
+
+/**
+ * Invoked via the callback passed to the delegatee's `.login` method
+ * @param [err] An Error that ocurred when authenticating the end-user
+ * @private
+ */
+Auth.prototype._finishLogin = function (err) {
+    log('Auth#_finishLogin');
+    this.emit('login');
 };
 
 /**
@@ -82,13 +109,16 @@ Auth.prototype.login = function () {
  */
 Auth.prototype.logout = function () {
     log('Auth#logout');
-    this._delegatee.logout.apply(this._delegatee, arguments);
+    var finishLogout = this._finishLogout.bind(this);
+    this._delegatee.logout.call(this._delegatee, finishLogout);
+    this.emit('logout');
 };
 
 /**
- * Create an Auth object
- * @param [opts] {object} Options to configure the Auth object
+ * Invoked via the callback passed to the delegatee's `.login` method
+ * @param [err] An Error that ocurred when authenticating the end-user
+ * @private
  */
-module.exports = function createAuth(opts) {
-    return new Auth(opts);
+Auth.prototype._finishLogout = function (err) {
+    log('Auth#_finishLogout');
 };

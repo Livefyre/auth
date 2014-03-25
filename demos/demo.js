@@ -2,13 +2,15 @@ var auth = require('auth');
 var log = require('debug')('auth-demo');
 
 auth.delegate({
-    login: function () {
+    login: function (finishLogin) {
         log('login', arguments);
         auth.user.set({ id: '1' });
+        finishLogin();
     },
-    logout: function () {
+    logout: function (finishLogout) {
         log('logout', arguments);
         auth.user.set({ id: null });
+        finishLogout();
     }
 });
 
@@ -63,8 +65,8 @@ function createAuthLog(el) {
         logEl.innerText = message;
         el.appendChild(logEl);
     }
-    var onLogin = log.bind(this, 'Logged in');
-    var onLogout = log.bind(this, 'Logged out');
+    var onLogin = authLog.bind(this, 'Logged in');
+    var onLogout = authLog.bind(this, 'Logged out');
     auth.on('login', onLogin);
     auth.on('logout', onLogout);
     return authLog;
