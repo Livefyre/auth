@@ -1,19 +1,24 @@
 var auth = require('auth');
 var log = require('debug')('auth-demo');
 
+// Delegate to my custom auth implementation
 auth.delegate({
     login: function (finishLogin) {
         log('login', arguments);
-        auth.user.set({ id: '1' });
-        finishLogin();
+        var userId = Math.round(Math.random() * 10e9);
+        finishLogin('myToken'+userId);
+        // or if the user was not authenticated
+        // finishLogin();
+        // or if there was an error;
+        // finishLogin(new Error('Please enable cookies to log in'));
     },
     logout: function (finishLogout) {
         log('logout', arguments);
-        auth.user.set({ id: null });
         finishLogout();
     }
 });
 
+// Render on DOMReady
 if (document.readyState === 'complete') {
     onDomReady();
 } else {
@@ -28,9 +33,10 @@ function onDomReady() {
     authLog('dom ready');
 }
 
+// Create an auth button in the specified el
 function createAuthButton (el) {
     function isLoggedIn () {
-        return auth.user.isAuthenticated();
+        return auth.isAuthenticated();
     }
     function getText () {
         return isLoggedIn() ? 'Log out' : 'Log in';
@@ -59,6 +65,7 @@ function createAuthButton (el) {
     });
 }
 
+// Create an auth log in the specified el
 function createAuthLog(el) {
     function authLog (message) {
         var logEl = document.createElement('p');
@@ -72,7 +79,9 @@ function createAuthLog(el) {
             parent.appendChild(child);
         }
     }
-    var onLogin = authLog.bind(this, 'Logged in');
+    var onLogin = function (creds) {
+        authLog('Logged in with ' + creds);
+    };
     var onLogout = authLog.bind(this, 'Logged out');
     auth.on('login', onLogin);
     auth.on('logout', onLogout);
