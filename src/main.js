@@ -1,10 +1,14 @@
+var inherits = require('inherits');
+var EventEmitter = require('event-emitter');
 var log = require('debug')('auth');
 
 function Auth (opts) {
+    EventEmitter.apply(this, arguments);
     opts = opts || {};
     this.user = opts.user || require('auth/user');
     this.delegate(opts);
 }
+inherits(Auth, EventEmitter);
 
 /**
  * Delegate auth actions to the provided object
@@ -39,6 +43,10 @@ Auth.prototype.logout = function () {
 
 module.exports = createAuth();
 
+/**
+ * Create an Auth object
+ * @param [opts] {object} Options to configure the Auth object
+ */
 function createAuth(opts) {
     return new Auth(opts);
-};
+}

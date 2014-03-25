@@ -22,7 +22,7 @@ if (document.readyState === 'complete') {
 function onDomReady() {
     log('onDomReady');
     authButton(document.getElementById('auth-button'));
-    authLog(document.getElementById('auth-log'));  
+    authLog(document.getElementById('auth-log'));
 }
 
 function authButton (el) {
@@ -57,5 +57,13 @@ function authButton (el) {
 }
 
 function authLog(el) {
-
+    function log (message) {
+        var logEl = document.createElement('p');
+        logEl.innerText = message;
+        el.appendChild(logEl);
+    }
+    var onLogin = log.bind(this, 'Logged in');
+    var onLogout = log.bind(this, 'Logged out');
+    auth.on('login', onLogin);
+    auth.on('logout', onLogout);
 }
