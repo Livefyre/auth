@@ -19,7 +19,8 @@ use the `.delegate` method to configure this Auth object by passing an
         // Called when a component would like to authenticate the end-user
         // You may want to redirect to a login page, or open a popup
         // Call `finishLogin` when login is complete, passing an Error object
-        // if there was an error
+        // if there was an error, and authentication credentials if they have
+        // been procured
         login: function (finishLogin) {
             finishLogin();
         },
@@ -64,17 +65,21 @@ module.exports = function createAuth(opts) {
  * An object which other components can use to trigger and monitor
  * end-user authentication on the host page
  * @constructor
- * @param [opts.user] The user model to set as .user. Usually you should
- *     not provide this, and an `auth/user` will be created for you
  */
-function Auth (opts) {
-    EventEmitter.apply(this, arguments);
-    opts = opts || {};
-    this.user = opts.user || require('auth/user');
+function Auth () {
+    EventEmitter.apply(this);
     this._delegatee = null;
     this.delegate({});
 }
 inherits(Auth, EventEmitter);
+
+/**
+ * Return whether the end-user is currently authenticated
+ * @returns {Boolean}
+ */
+Auth.prototype.isAuthenticated = function () {
+    return Boolean(this._credentials);
+};
 
 /**
  * Delegate auth actions to the provided object
@@ -101,7 +106,7 @@ Auth.prototype.delegate = function (opts) {
 Auth.prototype.login = function () {
     log('Auth#login');
     // finishLogin should be called by the delegatee.logout when done
-    var finishLogin = this._finishLogin.bind(this);
+    var finishLogin = callableOnce(this._finishLogin.bind(this));
     this._delegatee.login.call(this._delegatee, finishLogin);
 };
 
@@ -110,13 +115,18 @@ Auth.prototype.login = function () {
  * @param [err] An Error that ocurred when authenticating the end-user
  * @private
  */
-Auth.prototype._finishLogin = function (err) {
-    log('Auth#_finishLogin', err);
+Auth.prototype._finishLogin = function (loginStatus) {
+    log('Auth#_finishLogin', loginStatus);
+    var err = isError(loginStatus);
     if (err) {
         this.emit('error', err);
         return;
     }
-    this.emit('login');
+    if (! loginStatus) {
+        log(['_finishLogin called without a truthy first parameter. The user',
+             'was not authenticated.'].join(' '));
+    }
+    this._authenticate(loginStatus);
 };
 
 /**
@@ -126,7 +136,7 @@ Auth.prototype._finishLogin = function (err) {
 Auth.prototype.logout = function () {
     log('Auth#logout');
     // finishLogout should be called by the delegatee.logout when done
-    var finishLogout = this._finishLogout.bind(this);
+    var finishLogout = callableOnce(this._finishLogout.bind(this));
     this._delegatee.logout.call(this._delegatee, finishLogout);
 };
 
@@ -135,11 +145,63 @@ Auth.prototype.logout = function () {
  * @param [err] An Error that ocurred when deauthenticating the end-user
  * @private
  */
-Auth.prototype._finishLogout = function (err) {
-    log('Auth#_finishLogout', err);
+Auth.prototype._finishLogout = function (logoutStatus) {
+    log('Auth#_finishLogout', logoutStatus);
+    var err = isError(logoutStatus);
     if (err) {
         this.emit('error', err);
         return;
     }
-    this.emit('logout');
+    this._authenticate(logoutStatus);
 };
+
+/**
+ * Authenticate the user with the provided credentials
+ * @protected
+ * @param credentials - Something to authenticate the user with
+ */
+Auth.prototype._authenticate = function (credentials) {
+    var oldCredentials = this._credentials;
+    var credentialsChanged = (credentials !== oldCredentials);
+    if ( ! credentialsChanged) {
+        log('_authenticate called, but with same credentials. Returning early');
+        return;
+    }
+    this._credentials = credentials;
+    if (this.isAuthenticated()) {
+        this.emit('login', credentials);
+    } else {
+        this.emit('logout', credentials);
+    }
+};
+
+/**
+ * Return the provided param if it is an error
+ * else return null
+ */
+function isError(err) {
+    if (err instanceof Error) {
+        return err;
+    }
+    return null;
+}
+
+/**
+ * Create a function that only does work the first time it is called
+ * @param doWork {function} The Work to do. It will only be invoked once
+ *     no matter how many times the returned function is invoked
+ * @returns {function}
+ */
+function callableOnce(doWork, thisContext) {
+    var callCount = 0;
+    thisContext = thisContext || {};
+    return function () {
+        callCount++;
+        if (callCount > 1) {
+            log(['This function is only meant to be called once, but it was called ',
+                 callCount, ' times'].join(''));
+            return;
+        }
+        doWork.apply(thisContext, arguments);
+    };
+}
