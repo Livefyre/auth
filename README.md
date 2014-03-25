@@ -1,126 +1,50 @@
-# Livefyre Auth
+# Auth
 
-    var auth = Livefyre.require('auth');
+Web Components frequently need to know about and/or trigger authentication by
+the end-user, but should not need to be tightly-coupled to any one authentication
+strategy.
 
-## Principles
+## For Site Operators
 
-* Host pages implement and call methods on only one object that they create and register
-  with the `auth` module. The only auth method an integrator should ever call is `setToken`
-* App developers only call methods on the auth module and its properties. They
-  never have to worry about the delegate directly
+Web Site operators make the decisions about what sort of authentication strategies
+they prefer. They should be able to delegate the details to an Auth object to
+coordinate the effort.
 
-## Auth Delegates
+This module exports a function that will create an Auth object. Usually there
+will only be one Auth object running on a webpage.
 
-Host sites create an auth delegate, and only call methods on their auth
-delegate, not the auth module.
+On load, a customer should
+use the `.delegate` method to configure this Auth object by passing an
+'authentication delegate' like the following:
 
-When a user logs in, they are responsible for calling `delegate.setToken('token');`
-
-    Customer.LivefyreAuth = auth.delegate(new auth.RemoteAuth({
-        login: function () {
-            CustomerAuth.authenticate(function () {
-                this.setToken('myToken');
-            }.bind(this));
+    auth.delegate({
+        // Called when a component would like to authenticate the end-user
+        // You may want to redirect to a login page, or open a popup
+        // Call `finishLogin` when login is complete, passing an Error object
+        // if there was an error, and authentication credentials if they have
+        // been procured
+        login: function (finishLogin) {
+            finishLogin();
         },
-        logout: function () {
-            CustomerAuth.clearAuth();
-            this.setToken(null);
+
+        // Called when a component would like to deauthenticate the end-user
+        // You may want to clear a cookie
+        // Call `finishLogout` when logout is complete, passing an Error object
+        // if there was an error
+        logout: function (finishLogout) {
+            finishLogout();
         }
-    }));
-
-### Scenario: A user logs out via customer link, apps need to find out
-
-Customer does this
-
-    $('#customer-log-out-button', function () {
-        Customer.LivefyreAuth.setToken(null); 
     });
 
-Apps are finding out via
+## For Component Developers
 
-    auth.on('logout', function (previousUser) {
-        // stuff    
-    });
+A Web Component developer may wish to be notified when end-user authentication
+status changes. For example, certain actions may only be enabled if the user
+is authenticated. Or if the user is not authenticated, the component may wish
+to render a 'Log in' link.
 
-## AppKit Auth
+For these purposes, component developers can listen for events emitted by an
+Auth object
 
-App Developers have needs too. They use the `auth` module singleton.
-They never touch the delegate, nor can they.
-
-The semantics of the invocation of these methods are like requests.
-"I request that the user be logged in". However, those requests may not be
-fulfilled by the delegate.
-
-### Is the user currently logged in?
-
-    auth.user.isAuthenticated();
-
-### The user needs to login
-
-Apps can present a 'log in' link, or they may have buttons that require auth
-to perform their command.
-
-`auth.login` will use the customer-provided authDelegate.
-
-And I don't care what happens
-
-    auth.login();
-
-And I want to know who they authenticate as
-
-    auth.login(function (user) {});
-
-And I care about their permissions/keys in a given scope. This would pass
-appropriate options to the auth endpoint for that collection
-
-    auth.login(scopeObj, function (user) {});
-    auth.login(collectionOpts, function (user, scopeAuth) {});
-    auth.login({ siteId: 123456 }, function (user, scopeAuth) {});
-
-This can be called even if the user is already logged in. For example, if you only find out
-after a bit that you need permissions for a new scope.
-
-### The user would like to log out
-
-    auth.logout();
-
-### Notify me when a user logs in
-
-    auth.on('login', function (user) {
-        thisComponent.setUser(user);
-    });
-
-### Notify me when a user logs out
-
-    auth.on('logout', function (user) {
-        thisComponent.setUser(user);
-    });
-
-### Call a function if a user is logged in or whenever they do
-
-    auth.on('change:user', function (userOrFalsy) {
-        if (user) {
-            myComponent.setUser(user);
-        } else {
-            myComponent.renderLoggedOut();
-        }
-    })
-
-Or maybe the user object is always passed, and the check is `isAuthenticated()`.
-I want this but not sure how to design it.
-
-Or maybe
-
-    auth.eachUser(function (userOrFalsy) { });
-
-# Questions
-
-* Is `auth.user` guaranteed to always be the same object, or no? Shouldn't it
-  change when a new user logs in or out? Is it ever falsy?
-* What is the point of Liveyfre.user.loadSession? and who should call it when?
-  Why isn't it auth.loadSession()?
-* What if I call `auth.login()` when the user is already set? Should it just pass
-  the currently logged in user to my callback? (ben: yes!)
-* Should apps be able to access `setToken`? So a log in button could be an app? No for now.
-  But it could call `auth._delegate.setToken`
-
+    auth.on('login', setUserLoggedIn.bind(this, true));
+    auth.on('logout', setUserLoggedIn.bind(this, false))
