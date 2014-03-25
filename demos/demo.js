@@ -63,7 +63,14 @@ function createAuthLog(el) {
     function authLog (message) {
         var logEl = document.createElement('p');
         logEl.innerText = message;
-        el.appendChild(logEl);
+        prependEl(el, logEl);
+    }
+    function prependEl(parent, child) {
+        if (parent.firstChild) {
+            parent.insertBefore(child, parent.firstChild);
+        } else {
+            parent.appendChild(child);
+        }
     }
     var onLogin = authLog.bind(this, 'Logged in');
     var onLogout = authLog.bind(this, 'Logged out');
