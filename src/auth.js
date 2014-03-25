@@ -54,23 +54,15 @@ var EventEmitter = require('event-emitter');
 var log = require('debug')('auth');
 
 /**
- * Create an Auth object
- * @param [opts] {object} Options to configure the Auth object
- */
-module.exports = function createAuth(opts) {
-    return new Auth(opts);
-};
-
-/**
  * An object which other components can use to trigger and monitor
  * end-user authentication on the host page
  * @constructor
  */
-function Auth () {
+var Auth = module.exports = function () {
     EventEmitter.apply(this);
     this._delegatee = null;
     this.delegate({});
-}
+};
 inherits(Auth, EventEmitter);
 
 /**
