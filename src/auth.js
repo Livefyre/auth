@@ -87,9 +87,11 @@ Auth.prototype.delegate = function (opts) {
 
 /**
  * Try to facilitate authentication (login) by the end user
+ * @public
  */
 Auth.prototype.login = function () {
     log('Auth#login');
+    // finishLogin should be called by the delegatee.logout when done
     var finishLogin = this._finishLogin.bind(this);
     this._delegatee.login.call(this._delegatee, finishLogin);
 };
@@ -100,25 +102,35 @@ Auth.prototype.login = function () {
  * @private
  */
 Auth.prototype._finishLogin = function (err) {
-    log('Auth#_finishLogin');
+    log('Auth#_finishLogin', err);
+    if (err) {
+        this.emit('error', err);
+        return;
+    }
     this.emit('login');
 };
 
 /**
  * Try to facilitate deauthentication (logout) by the user
+ * @public
  */
 Auth.prototype.logout = function () {
     log('Auth#logout');
+    // finishLogout should be called by the delegatee.logout when done
     var finishLogout = this._finishLogout.bind(this);
     this._delegatee.logout.call(this._delegatee, finishLogout);
-    this.emit('logout');
 };
 
 /**
- * Invoked via the callback passed to the delegatee's `.login` method
- * @param [err] An Error that ocurred when authenticating the end-user
+ * Invoked via the callback passed to the delegatee's `.logout` method
+ * @param [err] An Error that ocurred when deauthenticating the end-user
  * @private
  */
 Auth.prototype._finishLogout = function (err) {
-    log('Auth#_finishLogout');
+    log('Auth#_finishLogout', err);
+    if (err) {
+        this.emit('error', err);
+        return;
+    }
+    this.emit('logout');
 };
