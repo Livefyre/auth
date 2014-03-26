@@ -60,7 +60,7 @@ var log = require('debug')('auth');
  */
 var Auth = module.exports = function () {
     EventEmitter.apply(this);
-    this._delegatee = null;
+    this._delegate = null;
     this.delegate({});
 };
 inherits(Auth, EventEmitter);
@@ -75,18 +75,18 @@ Auth.prototype.isAuthenticated = function () {
 
 /**
  * Delegate auth actions to the provided object
- * @param delegatee {object} The object to delegate actions to.
+ * @param delegate {object} The object to delegate actions to.
  *     It should implement .login, .logout functions.
  */
 Auth.prototype.delegate = function (opts) {
     log('Auth#delegate', opts);
-    var lastDelegatee = this._delegatee || {
+    var lastdelegate = this._delegate || {
         login: log.bind(log, 'default login'),
         logout: log.bind(log, 'default logout')
     };
-    this._delegatee = {
-        login: opts.login || lastDelegatee.login,
-        logout: opts.logout || lastDelegatee.logout
+    this._delegate = {
+        login: opts.login || lastdelegate.login,
+        logout: opts.logout || lastdelegate.logout
     };
     return this;
 };
@@ -97,13 +97,13 @@ Auth.prototype.delegate = function (opts) {
  */
 Auth.prototype.login = function () {
     log('Auth#login');
-    // finishLogin should be called by the delegatee.logout when done
+    // finishLogin should be called by the delegate.logout when done
     var finishLogin = callableOnce(this._finishLogin.bind(this));
-    this._delegatee.login.call(this._delegatee, finishLogin);
+    this._delegate.login.call(this._delegate, finishLogin);
 };
 
 /**
- * Invoked via the callback passed to the delegatee's `.login` method
+ * Invoked via the callback passed to the delegate's `.login` method
  * @param [err] An Error that ocurred when authenticating the end-user
  * @private
  */
@@ -127,13 +127,13 @@ Auth.prototype._finishLogin = function (loginStatus) {
  */
 Auth.prototype.logout = function () {
     log('Auth#logout');
-    // finishLogout should be called by the delegatee.logout when done
+    // finishLogout should be called by the delegate.logout when done
     var finishLogout = callableOnce(this._finishLogout.bind(this));
-    this._delegatee.logout.call(this._delegatee, finishLogout);
+    this._delegate.logout.call(this._delegate, finishLogout);
 };
 
 /**
- * Invoked via the callback passed to the delegatee's `.logout` method
+ * Invoked via the callback passed to the delegate's `.logout` method
  * @param [err] An Error that ocurred when deauthenticating the end-user
  * @private
  */
