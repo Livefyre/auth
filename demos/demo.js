@@ -1,6 +1,20 @@
 var auth = require('auth');
 var log = require('debug')('auth-demo');
 
+function passwordLogin(password) {
+    var passwordAuthDelegate = {
+        login: function (finishLogin) {
+            var passwordGuess = window.prompt("What is the password?");
+            if (passwordGuess !== password) {
+                finishLogin(new Error('Wrong password'));
+                return;
+            }
+            finishLogin(passwordGuess);
+        }
+    };
+    return passwordAuthDelegate;
+}
+
 // Delegate to my custom auth implementation
 auth.delegate({
     login: function (finishLogin) {
@@ -17,6 +31,8 @@ auth.delegate({
         finishLogout();
     }
 });
+
+auth.delegate(passwordLogin('password'));
 
 // Render on DOMReady
 if (document.readyState === 'complete') {
@@ -85,5 +101,8 @@ function createAuthLog(el) {
     var onLogout = authLog.bind(this, 'Logged out');
     auth.on('login', onLogin);
     auth.on('logout', onLogout);
+    auth.on('error', function (err) {
+        authLog('Error: '+err.message);
+    });
     return authLog;
 }
