@@ -18,6 +18,26 @@ describe('auth', function () {
             });
         });
     });
+    describe('.authenticate()', function () {
+        describe('when passed a truthy parameter', function () {
+            it('auth emits a login event', function () {
+                var onLogin = sinon.spy();
+                auth.on('login', onLogin);
+                auth.authenticate('t');
+                assert(onLogin.calledOnce);
+                assert(auth.isAuthenticated());
+            });
+        });
+        describe('when passed a falsy parameter', function () {
+            it('auth emits a logout event', function () {
+                var onLogout = sinon.spy();
+                auth.on('logout', onLogout);
+                auth.authenticate(false);
+                assert(onLogout.calledOnce);
+                assert( ! auth.isAuthenticated());
+            });
+        });
+    });
     describe('.login()', function () {
         it('invokes delegate.login with a finishLogin callback', function () {
             var delegate = {

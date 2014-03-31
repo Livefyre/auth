@@ -53,6 +53,8 @@ var inherits = require('inherits');
 var EventEmitter = require('event-emitter');
 var log = require('debug')('auth');
 
+var DEFAULT_CREDENTIALS = {};
+
 /**
  * An object which other components can use to trigger and monitor
  * end-user authentication on the host page
@@ -61,7 +63,7 @@ var log = require('debug')('auth');
 var Auth = module.exports = function () {
     EventEmitter.apply(this);
     this._delegate = null;
-    this._credentials = null;
+    this._credentials = DEFAULT_CREDENTIALS;
     this.delegate({
         login: log.bind(log, 'default login'),
         logout: function (finishLogout) {
@@ -77,6 +79,9 @@ inherits(Auth, EventEmitter);
  * @returns {Boolean}
  */
 Auth.prototype.isAuthenticated = function () {
+    if (this._credentials === DEFAULT_CREDENTIALS) {
+        return false;
+    }
     return Boolean(this._credentials);
 };
 
@@ -160,6 +165,14 @@ Auth.prototype._finishLogout = function (logoutStatus) {
         return;
     }
     this._authenticate(logoutStatus);
+};
+
+/**
+ * Authenticate the user with the provided credentials
+ * This should be used to indicate that the user is already logged in.
+ */
+Auth.prototype.authenticate = function (credentials) {
+    this._authenticate(credentials);
 };
 
 /**

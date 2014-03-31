@@ -30,6 +30,9 @@ auth.delegate({
 
 auth.delegate(passwordLogin('password'));
 
+// The user is currently logged in on page load
+auth.authenticate('creds');
+
 // Create an auth button in the specified el
 var createAuthButton = (function () {
     var nextId = 0;
@@ -63,6 +66,7 @@ var createAuthButton = (function () {
         auth.on('login', setText);
         auth.on('logout', setText);
         el.addEventListener('click', toggle);
+        setText();
         log('init createAuthButton');
     }
 }());
