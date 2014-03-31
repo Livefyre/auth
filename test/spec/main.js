@@ -116,6 +116,22 @@ describe('auth', function () {
             assert(onAuthLogout.calledOnce);
         });
     });
+    describe('.isAuthenticated()', function () {
+        it('returns falsy when the user has not logged in', function () {
+            assert( ! auth.isAuthenticated());
+        });
+        it('returns truthy when the user has logged in', function () {
+            auth.delegate({
+                login: function (finishLogin) {
+                    finishLogin('hi');
+                }
+            });
+            auth.login();
+            assert(auth.isAuthenticated());
+            auth.logout();
+            assert( ! auth.isAuthenticated());
+        });
+    });
     describe('.create()', function () {
         it('creates Auth objects', function () {
             var opts = {a: 1};
