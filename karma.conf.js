@@ -9,7 +9,7 @@ module.exports = function(config) {
 
 
     // frameworks to use
-    frameworks: ['mocha', 'cajon'],
+    frameworks: ['mocha-debug', 'mocha', 'cajon'],
 
 
     // list of files / patterns to load in the browser
