@@ -18,11 +18,14 @@ describe('auth', function () {
             };
             auth.delegate(delegate);
             auth.login();
-            assert(delegate.login.calledOnce, 'delegate.login is called once');
+            assert(delegate.login.calledOnce,
+                'delegate.login is called once');
             var delegateLoginCall = delegate.login.firstCall;
-            assert(delegateLoginCall.args.length === 1);
+            assert(delegateLoginCall.args.length === 1,
+                'delegate.login is passed one argument');
             var finishLogin = delegateLoginCall.args[0];
-            assert.typeOf(finishLogin, 'function', 'passed arg is a callback');
+            assert.typeOf(finishLogin, 'function',
+                'delegate.login arg is a callback function');
         });
         it('only uses first invocation of finishLogin', function () {
             var delegate = {
@@ -35,9 +38,49 @@ describe('auth', function () {
             var onLogin = sinon.spy();
             auth.on('login', onLogin);
             auth.delegate(delegate);
+
             auth.login();
             assert(onLogin.calledOnce);
             assert(onLogin.lastCall.args[0] === 1);
+        });
+        describe('passing a non-error to finishLogin', function () {
+            it('auth emits a login event', function () {
+                var credentials = 'token';
+                var onAuthLogin = sinon.spy();
+                auth.delegate({
+                    login: function (finishLogin) {
+                        finishLogin(credentials);
+                    }
+                });
+                auth.on('login', onAuthLogin);
+                auth.login();
+                assert(onAuthLogin.calledOnce);
+                assert.equal(onAuthLogin.args[0], credentials);
+            });
+        });
+        describe('passing an Error to finishLogin', function () {
+            var loginError = new Error('user doesnt have cookies');
+            var loginErrorDelegate = {
+                login: function (finishLogin) {
+                    finishLogin(loginError);
+                }
+            };
+            beforeEach(function () {
+                auth.delegate(loginErrorDelegate);
+            });
+            it('auth emits an error event', function () {
+                var onAuthError = sinon.spy();
+                auth.on('error', onAuthError);
+                auth.login();
+                assert(onAuthError.calledOnce);
+                assert.equal(onAuthError.lastCall.args[0], loginError);
+            });
+            it('a login event is not emitted', function () {
+                var onAuthLogin = sinon.spy();
+                auth.on('login', onAuthLogin);
+                auth.login();
+                assert.equal(onAuthLogin.callCount, 0);
+            });
         });
     });
     describe('.create()', function () {
