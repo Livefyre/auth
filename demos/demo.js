@@ -40,7 +40,8 @@ if (document.readyState === 'complete') {
 var authLog;
 function onDomReady() {
     log('onDomReady');
-    createAuthButton(document.getElementById('auth-button'));
+    createAuthButton(document.getElementById('auth-button1'));
+    createAuthButton(document.getElementById('auth-button2'));
     authLog = createAuthLog(document.getElementById('auth-log'));
     authLog('dom ready');
 }
@@ -59,22 +60,16 @@ function createAuthButton (el) {
     function toggle () {
         log('toggle', isLoggedIn());
         if (isLoggedIn()) {
-            logOut();
+            auth.logout();
         } else {
-            logIn();
+            auth.login();
         }
         setText();
     }
-    function logIn() {
-        auth.login();
-    }
-    function logOut() {
-        auth.logout();
-    }
+    auth.on('login', setText);
+    auth.on('logout', setText);
+    el.addEventListener('click', toggle);
     log('init createAuthButton');
-    el.addEventListener('click', function onClick (e) {
-        toggle();
-    });
 }
 
 // Create an auth log in the specified el
