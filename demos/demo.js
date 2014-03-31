@@ -25,10 +25,6 @@ auth.delegate({
         // finishLogin();
         // or if there was an error;
         // finishLogin(new Error('Please enable cookies to log in'));
-    },
-    logout: function (finishLogout) {
-        log('logout', arguments);
-        finishLogout();
     }
 });
 
