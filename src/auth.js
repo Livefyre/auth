@@ -115,7 +115,7 @@ Auth.prototype.login = function (callback) {
     }.bind(this));
     // finishLogin should be called by the delegate.logout when done
     var loginResult = login.call(this._delegate, finishLogin);
-    // If the delegate.login has arity 0, assume its a synchronous
+    // If the delegate.login has arity 0, assume it's a synchronous
     // process, and call finishLogin for the delegate creator.
     if (login.length === 0) {
         finishLogin(loginResult);
@@ -156,7 +156,7 @@ Auth.prototype.logout = function (callback) {
     }.bind(this));
     // finishLogout should be called by the delegate.logout when done
     var logoutResult = logout.call(this._delegate, finishLogout);
-    // If the delegate.logout has arity 0, assume its a synchronous
+    // If the delegate.logout has arity 0, assume it's a synchronous
     // process, and call finishLogout for the delegate creator.
     if (logout.length === 0) {
         finishLogout(logoutResult);
