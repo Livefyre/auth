@@ -17,13 +17,19 @@
     "mocha-phantomjs": "3.1.6",
     "phantomjs": "*",
     "requirejs": "2.1.9",
-    "http-server": "^0.6.1"
+    "http-server": "^0.6.1",
+    "karma": "^0.12.2",
+    "karma-cajon": "0.0.1",
+    "karma-mocha": "^0.1.3",
+    "karma-phantomjs-launcher": "^0.1.2",
+    "karma-chrome-launcher": "^0.1.2"
   },
   "scripts": {
     "build": "./node_modules/requirejs/bin/r.js -o ./build.conf.js",
     "hint": "./node_modules/jshint/bin/jshint src/ test/spec/; echo",
     "postinstall": "./node_modules/bower/bin/bower install",
     "start": "./node_modules/http-server/bin/http-server",
-    "test": "./bin/test"
+    "test": "./node_modules/karma/bin/karma start",
+    "testp": "./node_modules/karma/bin/karma start --browsers=PhantomJS"
   }
 }

@@ -2,7 +2,7 @@
  * @fileoverview Storage tests - should be run in multiple environments as storage is inconsistent
  * and sometimes does not work well (even when it should).
  */
-
+var chai = require('chai');
 var storage = require('auth/util/storage');
 
 describe('auth/util/storage', function() {

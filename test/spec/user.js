@@ -2,7 +2,8 @@
  * @fileoverview global user singleton unit tests.
  */
 
-var storage = require('auth/util/storage'),
+var chai = require('chai'),
+    storage = require('auth/util/storage'),
     user = require('auth/user'),
     // TODO(rrp): This is already included in ./tests/fixtures/auth.json, so we should probably
     // just use one version.

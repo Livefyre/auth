@@ -9,6 +9,9 @@
     <script src="../lib/cajon/cajon.js"></script>
     <script src="../config/requirejs.conf.js"></script>
     <script>
+        require.config({
+            baseUrl: '../'
+        })
         require(['demos/demo']);
     </script>
 </body>

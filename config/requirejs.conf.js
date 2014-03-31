@@ -1,5 +1,4 @@
 require.config({
-  baseUrl: '../',
   paths: {
     base64: 'lib/base64/base64',
     'event-emitter': 'lib/event-emitter/src/event-emitter',
