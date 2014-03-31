@@ -1,15 +1,15 @@
-var auth = require('auth');
+var authModule = require('auth');
 var Auth = require('auth/auth');
 var assert = require('chai').assert;
 var sinon = require('sinon');
 
 describe('auth', function () {
-    afterEach(function () {
-        // reset the delegated methods
-        auth.delegate({
-            login: function (finishLogin) { finishLogin(); },
-            logout: function (finishLogout) { finishLogout(); }
-        });
+    var auth;
+    beforeEach(function () {
+        // `authModule` is already an instance, but .creating beforeEach
+        // takes care of resetting state across tests
+        auth = authModule.create();
+        auth.on('error', function (err) {});
     });
     it('a delegate can be passed to .delegate()', function () {
         assert.doesNotThrow(function () {
@@ -49,6 +49,37 @@ describe('auth', function () {
             auth.login();
             assert(onLogin.calledOnce);
             assert(onLogin.lastCall.args[0] === 1);
+        });
+        describe('when passed a callback', function () {
+            it('the callback is called on finishLogin', function () {
+                var loginError = new Error();
+                auth.delegate({
+                    login: function (finishLogin) {
+                        finishLogin(loginError);
+                    }
+                });
+                var loginCallback = sinon.spy();
+                auth.login(loginCallback);
+                assert(loginCallback.calledOnce);
+                assert.equal(loginCallback.lastCall.args[0], loginError);
+            });
+            it('the callback is not called by another login invocation', function () {
+                var finishLogins = [];
+                var afterLogin1 = sinon.spy();
+                var afterLogin2 = sinon.spy();
+                auth.delegate({
+                    login: function (finishLogin) {
+                        finishLogins.push(finishLogin);
+                    }
+                });
+                auth.login(afterLogin1);
+                auth.login(afterLogin2);
+                
+                var finishLogin1 = finishLogins[0];
+                finishLogin1('token1');
+                assert(afterLogin1.calledOnce);
+                assert(afterLogin2.callCount === 0);
+            });
         });
         describe('passing a non-error to finishLogin', function () {
             it('auth emits a login event', function () {
@@ -115,6 +146,37 @@ describe('auth', function () {
             auth.logout();
             assert(onAuthLogout.calledOnce);
         });
+        describe('when passed a callback', function () {
+            it('the callback is called on finishLogout', function () {
+                var logoutError = new Error();
+                auth.delegate({
+                    logout: function (finishLogout) {
+                        finishLogout(logoutError);
+                    }
+                });
+                var logoutCallback = sinon.spy();
+                auth.logout(logoutCallback);
+                assert(logoutCallback.calledOnce);
+                assert.equal(logoutCallback.lastCall.args[0], logoutError);
+            });
+            it('the callback is not called by another login invocation', function () {
+                var finishLogouts = [];
+                var afterLogout1 = sinon.spy();
+                var afterLogout2 = sinon.spy();
+                auth.delegate({
+                    logout: function (finishLogout) {
+                        finishLogouts.push(finishLogout);
+                    }
+                });
+                auth.logout(afterLogout1);
+                auth.logout(afterLogout2);
+                
+                var finishLogout1 = finishLogouts[0];
+                finishLogout1();
+                assert(afterLogout1.calledOnce);
+                assert(afterLogout2.callCount === 0);
+            });
+        });
     });
     describe('.isAuthenticated()', function () {
         it('returns falsy when the user has not logged in', function () {
@@ -135,7 +197,7 @@ describe('auth', function () {
     describe('.create()', function () {
         it('creates Auth objects', function () {
             var opts = {a: 1};
-            var myAuth = auth.create(opts);
+            var myAuth = authModule.create(opts);
             assert.instanceOf(myAuth, Auth);
         });
     });

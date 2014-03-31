@@ -61,6 +61,7 @@ var log = require('debug')('auth');
 var Auth = module.exports = function () {
     EventEmitter.apply(this);
     this._delegate = null;
+    this._credentials = null;
     this.delegate({
         login: log.bind(log, 'default login'),
         logout: function (finishLogout) {
@@ -96,12 +97,18 @@ Auth.prototype.delegate = function (opts) {
 
 /**
  * Try to facilitate authentication (login) by the end user
+ * @param callback {function} Function to call after login
  * @public
  */
-Auth.prototype.login = function () {
+Auth.prototype.login = function (callback) {
     log('Auth#login');
+    var finishLogin = callableOnce(function (loginStatus) {
+        if (typeof callback === 'function') {
+            callback.apply(this, arguments);
+        }
+        this._finishLogin.apply(this, arguments);
+    }.bind(this));
     // finishLogin should be called by the delegate.logout when done
-    var finishLogin = callableOnce(this._finishLogin.bind(this));
     this._delegate.login.call(this._delegate, finishLogin);
 };
 
@@ -128,10 +135,15 @@ Auth.prototype._finishLogin = function (loginStatus) {
  * Try to facilitate deauthentication (logout) by the user
  * @public
  */
-Auth.prototype.logout = function () {
+Auth.prototype.logout = function (callback) {
     log('Auth#logout');
+    var finishLogout = callableOnce(function () {
+        if (typeof callback === 'function') {
+            callback.apply(this, arguments);
+        }
+        this._finishLogout.apply(this, arguments);
+    }.bind(this));
     // finishLogout should be called by the delegate.logout when done
-    var finishLogout = callableOnce(this._finishLogout.bind(this));
     this._delegate.logout.call(this._delegate, finishLogout);
 };
 

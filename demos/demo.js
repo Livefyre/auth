@@ -30,47 +30,42 @@ auth.delegate({
 
 auth.delegate(passwordLogin('password'));
 
-// Render on DOMReady
-if (document.readyState === 'complete') {
-    onDomReady();
-} else {
-    document.addEventListener("DOMContentLoaded", onDomReady);
-}
-
-var authLog;
-function onDomReady() {
-    log('onDomReady');
-    createAuthButton(document.getElementById('auth-button1'));
-    createAuthButton(document.getElementById('auth-button2'));
-    authLog = createAuthLog(document.getElementById('auth-log'));
-    authLog('dom ready');
-}
-
 // Create an auth button in the specified el
-function createAuthButton (el) {
-    function isLoggedIn () {
-        return auth.isAuthenticated();
-    }
-    function getText () {
-        return isLoggedIn() ? 'Log out' : 'Log in';
-    }
-    function setText () {
-        el.innerText = getText();
-    }
-    function toggle () {
-        log('toggle', isLoggedIn());
-        if (isLoggedIn()) {
-            auth.logout();
-        } else {
-            auth.login();
+var createAuthButton = (function () {
+    var nextId = 0;
+    return function (el, authLog) {
+        var id = nextId++;
+        function isLoggedIn () {
+            return auth.isAuthenticated();
         }
-        setText();
+        function getText () {
+            return isLoggedIn() ? 'Log out' : 'Log in';
+        }
+        function setText () {
+            el.innerText = getText();
+        }
+        function toggle () {
+            log('toggle', isLoggedIn());
+            if (isLoggedIn()) {
+                auth.logout(function (logoutStatus) {
+                    authLog('Logged out via authButton '+id);
+                });
+            } else {
+                auth.login(function (loginStatus) {
+                    if (loginStatus instanceof Error) {
+                        return;
+                    }
+                    authLog('Logged in via authButton '+id);
+                });
+            }
+            setText();
+        }
+        auth.on('login', setText);
+        auth.on('logout', setText);
+        el.addEventListener('click', toggle);
+        log('init createAuthButton');
     }
-    auth.on('login', setText);
-    auth.on('logout', setText);
-    el.addEventListener('click', toggle);
-    log('init createAuthButton');
-}
+}());
 
 // Create an auth log in the specified el
 function createAuthLog(el) {
@@ -96,4 +91,19 @@ function createAuthLog(el) {
         authLog('Error: '+err.message);
     });
     return authLog;
+}
+
+// Render on DOMReady
+if (document.readyState === 'complete') {
+    onDomReady();
+} else {
+    document.addEventListener("DOMContentLoaded", onDomReady);
+}
+
+function onDomReady() {
+    log('onDomReady');
+    var authLog = createAuthLog(document.getElementById('auth-log'));
+    createAuthButton(document.getElementById('auth-button1'), authLog);
+    createAuthButton(document.getElementById('auth-button2'), authLog);
+    authLog('ready');
 }
