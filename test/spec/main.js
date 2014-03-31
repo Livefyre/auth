@@ -4,6 +4,13 @@ var assert = require('chai').assert;
 var sinon = require('sinon');
 
 describe('auth', function () {
+    afterEach(function () {
+        // reset the delegated methods
+        auth.delegate({
+            login: function (finishLogin) { finishLogin(); },
+            logout: function (finishLogout) { finishLogout(); }
+        });
+    });
     it('a delegate can be passed to .delegate()', function () {
         assert.doesNotThrow(function () {
             auth.delegate({
@@ -81,6 +88,32 @@ describe('auth', function () {
                 auth.login();
                 assert.equal(onAuthLogin.callCount, 0);
             });
+        });
+    });
+    describe('.logout()', function () {
+        it('invokes delegate.logout with a finishLogout callback', function () {
+            var delegate = {
+                logout: sinon.spy()
+            };
+            auth.delegate(delegate);
+            auth.logout();
+            assert(delegate.logout.calledOnce,
+                'delegate.logout is called once');
+            var delegateLogoutCall = delegate.logout.firstCall;
+            assert(delegateLogoutCall.args.length === 1,
+                'delegate.logout is passed one argument');
+            var finishLogout = delegateLogoutCall.args[0];
+            assert.typeOf(finishLogout, 'function',
+                'delegate.logout arg is a callback function');
+        });
+        it('emits a logout event', function () {
+            auth.delegate({
+                logout: function (auth) { auth(); }
+            });
+            var onAuthLogout = sinon.spy();
+            auth.on('logout', onAuthLogout);
+            auth.logout();
+            assert(onAuthLogout.calledOnce);
         });
     });
     describe('.create()', function () {
