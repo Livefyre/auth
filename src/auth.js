@@ -61,6 +61,13 @@ var log = require('debug')('auth');
 var Auth = module.exports = function () {
     EventEmitter.apply(this);
     this._delegate = null;
+    this.delegate({
+        login: log.bind(log, 'default login'),
+        logout: function (finishLogout) {
+            log.bind(log, 'default logout');
+            finishLogout();
+        }
+    });
 };
 inherits(Auth, EventEmitter);
 
@@ -79,10 +86,7 @@ Auth.prototype.isAuthenticated = function () {
  */
 Auth.prototype.delegate = function (opts) {
     log('Auth#delegate', opts);
-    var lastdelegate = this._delegate || {
-        login: log.bind(log, 'default login'),
-        logout: log.bind(log, 'default logout')
-    };
+    var lastdelegate = this._delegate;
     this._delegate = {
         login: opts.login || lastdelegate.login,
         logout: opts.logout || lastdelegate.logout
