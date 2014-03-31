@@ -3,19 +3,18 @@ var log = require('debug')('auth-demo');
 
 function passwordLogin(password) {
     var passwordAuthDelegate = {
-        login: function (finishLogin) {
+        login: function () {
             var passwordGuess = window.prompt("What is the password?");
             if (passwordGuess !== password) {
-                finishLogin(new Error('Wrong password'));
-                return;
+                return new Error('Wrong password');
             }
-            finishLogin(passwordGuess);
+            return passwordGuess;
         }
     };
     return passwordAuthDelegate;
 }
 
-// Delegate to my custom auth implementation
+// Delegate to my custom, sync auth implementation
 auth.delegate({
     login: function (finishLogin) {
         log('login', arguments);

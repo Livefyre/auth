@@ -39,6 +39,22 @@ describe('auth', function () {
         });
     });
     describe('.login()', function () {
+        describe('if delegate.login.length === 0', function () {
+            it('assumes synchronous login', function () {
+                var onAuthLogin = sinon.spy();
+                var loginResult = 'myCredentials';
+                auth.on('login', onAuthLogin);
+                auth.delegate({
+                    login: function () {
+                        return loginResult;
+                    }
+                });
+                auth.login();
+                assert(onAuthLogin.calledOnce);
+                assert.equal(onAuthLogin.lastCall.args[0], loginResult);
+                assert(auth.isAuthenticated());
+            });
+        });
         it('invokes delegate.login with a finishLogin callback', function () {
             var delegate = {
                 login: sinon.spy()
@@ -142,6 +158,22 @@ describe('auth', function () {
         });
     });
     describe('.logout()', function () {
+        describe('if delegate.logout.length === 0', function () {
+            it('assumes synchronous logout', function () {
+                var onAuthLogout = sinon.spy();
+                var logoutResult = null;
+                auth.on('logout', onAuthLogout);
+                auth.delegate({
+                    logout: function () {
+                        return logoutResult;
+                    }
+                });
+                auth.logout();
+                assert(onAuthLogout.calledOnce);
+                assert.equal(onAuthLogout.lastCall.args[0], logoutResult);
+                assert( ! auth.isAuthenticated());
+            });
+        });
         it('invokes delegate.logout with a finishLogout callback', function () {
             var delegate = {
                 logout: sinon.spy()

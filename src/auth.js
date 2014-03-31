@@ -66,9 +66,8 @@ var Auth = module.exports = function () {
     this._credentials = DEFAULT_CREDENTIALS;
     this.delegate({
         login: log.bind(log, 'default login'),
-        logout: function (finishLogout) {
+        logout: function () {
             log.bind(log, 'default logout');
-            finishLogout();
         }
     });
 };
@@ -107,6 +106,7 @@ Auth.prototype.delegate = function (opts) {
  */
 Auth.prototype.login = function (callback) {
     log('Auth#login');
+    var login = this._delegate.login;
     var finishLogin = callableOnce(function (loginStatus) {
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
@@ -114,7 +114,12 @@ Auth.prototype.login = function (callback) {
         this._finishLogin.apply(this, arguments);
     }.bind(this));
     // finishLogin should be called by the delegate.logout when done
-    this._delegate.login.call(this._delegate, finishLogin);
+    var loginResult = login.call(this._delegate, finishLogin);
+    // If the delegate.login has arity 0, assume its a synchronous
+    // process, and call finishLogin for the delegate creator.
+    if (login.length === 0) {
+        finishLogin(loginResult);
+    }
 };
 
 /**
@@ -142,6 +147,7 @@ Auth.prototype._finishLogin = function (loginStatus) {
  */
 Auth.prototype.logout = function (callback) {
     log('Auth#logout');
+    var logout = this._delegate.logout;
     var finishLogout = callableOnce(function () {
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
@@ -149,7 +155,12 @@ Auth.prototype.logout = function (callback) {
         this._finishLogout.apply(this, arguments);
     }.bind(this));
     // finishLogout should be called by the delegate.logout when done
-    this._delegate.logout.call(this._delegate, finishLogout);
+    var logoutResult = logout.call(this._delegate, finishLogout);
+    // If the delegate.logout has arity 0, assume its a synchronous
+    // process, and call finishLogout for the delegate creator.
+    if (logout.length === 0) {
+        finishLogout(logoutResult);
+    }
 };
 
 /**
