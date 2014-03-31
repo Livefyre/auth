@@ -61,7 +61,6 @@ var log = require('debug')('auth');
 var Auth = module.exports = function () {
     EventEmitter.apply(this);
     this._delegate = null;
-    this.delegate({});
 };
 inherits(Auth, EventEmitter);
 
