@@ -52,8 +52,7 @@ Auth object
 var inherits = require('inherits');
 var EventEmitter = require('event-emitter');
 var log = require('debug')('auth');
-
-var DEFAULT_CREDENTIALS = {};
+var bind = require('./util/bind');
 
 /**
  * An object which other components can use to trigger and monitor
@@ -61,15 +60,27 @@ var DEFAULT_CREDENTIALS = {};
  * @constructor
  */
 var Auth = module.exports = function () {
+    var creds;
     EventEmitter.apply(this);
-    this._delegate = null;
-    this._credentials = DEFAULT_CREDENTIALS;
+    this._delegate = {};
     this.delegate({
         login: log.bind(log, 'default login'),
-        logout: function () {
+        logout: function (loggedOut) {
             log.bind(log, 'default logout');
+            loggedOut();
         }
     });
+    // creds are private so these methods are added in the constructor
+    var set = function set(u) {
+        creds = u;
+    };
+    var get = function get(u) {
+        return creds;
+    };
+    this.get = get;
+    this.isAuthenticated = isAuthenticated.bind(this, get);
+    this.on('login', set);
+    this.on('logout', set);
 };
 inherits(Auth, EventEmitter);
 
@@ -77,25 +88,23 @@ inherits(Auth, EventEmitter);
  * Return whether the end-user is currently authenticated
  * @returns {Boolean}
  */
-Auth.prototype.isAuthenticated = function () {
-    if (this._credentials === DEFAULT_CREDENTIALS) {
-        return false;
-    }
-    return Boolean(this._credentials);
-};
+function isAuthenticated(get) {
+    return Boolean(get());
+}
 
 /**
  * Delegate auth actions to the provided object
  * @param delegate {object} The object to delegate actions to.
  *     It should implement .login, .logout functions.
  */
-Auth.prototype.delegate = function (opts) {
-    log('Auth#delegate', opts);
-    var lastdelegate = this._delegate;
-    this._delegate = {
-        login: opts.login || lastdelegate.login,
-        logout: opts.logout || lastdelegate.logout
-    };
+Auth.prototype.delegate = function (newDelegate) {
+    log('Auth#delegate', newDelegate);
+    if (newDelegate.login) {
+        this._delegate.login = bind(newDelegate.login, newDelegate);
+    }
+    if (newDelegate.logout) {
+        this._delegate.logout = bind(newDelegate.logout, newDelegate);
+    }
     return this;
 };
 
@@ -107,19 +116,14 @@ Auth.prototype.delegate = function (opts) {
 Auth.prototype.login = function (callback) {
     log('Auth#login');
     var login = this._delegate.login;
-    var finishLogin = callableOnce(function (loginStatus) {
+    var finishLogin = callableOnce(function () {
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
         }
         this._finishLogin.apply(this, arguments);
     }.bind(this));
     // finishLogin should be called by the delegate.logout when done
-    var loginResult = login.call(this._delegate, finishLogin);
-    // If the delegate.login has arity 0, assume it's a synchronous
-    // process, and call finishLogin for the delegate creator.
-    if (login.length === 0) {
-        finishLogin(loginResult);
-    }
+    login(finishLogin);
 };
 
 /**
@@ -127,18 +131,17 @@ Auth.prototype.login = function (callback) {
  * @param [err] An Error that ocurred when authenticating the end-user
  * @private
  */
-Auth.prototype._finishLogin = function (loginStatus) {
-    log('Auth#_finishLogin', loginStatus);
-    var err = isError(loginStatus);
+Auth.prototype._finishLogin = function (err, user) {
+    log('Auth#_finishLogin', err, user);
     if (err) {
         this.emit('error', err);
         return;
     }
-    if (! loginStatus) {
+    if (! user) {
         log(['_finishLogin called without a truthy first parameter. The user',
              'was not authenticated.'].join(' '));
     }
-    this._authenticate(loginStatus);
+    this._authenticate(user);
 };
 
 /**
@@ -155,12 +158,7 @@ Auth.prototype.logout = function (callback) {
         this._finishLogout.apply(this, arguments);
     }.bind(this));
     // finishLogout should be called by the delegate.logout when done
-    var logoutResult = logout.call(this._delegate, finishLogout);
-    // If the delegate.logout has arity 0, assume it's a synchronous
-    // process, and call finishLogout for the delegate creator.
-    if (logout.length === 0) {
-        finishLogout(logoutResult);
-    }
+    logout(finishLogout);
 };
 
 /**
@@ -175,7 +173,7 @@ Auth.prototype._finishLogout = function (logoutStatus) {
         this.emit('error', err);
         return;
     }
-    this._authenticate(logoutStatus);
+    this._authenticate(null);
 };
 
 /**
@@ -192,14 +190,7 @@ Auth.prototype.authenticate = function (credentials) {
  * @param credentials - Something to authenticate the user with
  */
 Auth.prototype._authenticate = function (credentials) {
-    var oldCredentials = this._credentials;
-    var credentialsChanged = (credentials !== oldCredentials);
-    if ( ! credentialsChanged) {
-        log('_authenticate called, but with same credentials. Returning early');
-        return;
-    }
-    this._credentials = credentials;
-    if (this.isAuthenticated()) {
+    if (credentials) {
         this.emit('login', credentials);
     } else {
         this.emit('logout', credentials);

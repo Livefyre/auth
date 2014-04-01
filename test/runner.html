@@ -15,7 +15,9 @@
         <script>
             mocha.ui('bdd');
             mocha.reporter('html');
-
+            require.config({
+                baseUrl: '../../'
+            });
             require([
                 /**
                  * Add individual unit tests.

@@ -11,8 +11,7 @@ require.config({
   packages: [{
     name: 'auth',
     location: 'src'
-  },
-  {
+  },{
     name: 'auth-tests',
     location: 'test'
   }],
