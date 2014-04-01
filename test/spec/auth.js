@@ -53,22 +53,6 @@ describe('auth/auth', function () {
         });
     });
     describe('.login()', function () {
-        describe('if delegate.login.length === 0', function () {
-            it('assumes synchronous login', function () {
-                var onAuthLogin = sinon.spy();
-                var loginResult = 'myCredentials';
-                auth.on('login', onAuthLogin);
-                auth.delegate({
-                    login: function () {
-                        return loginResult;
-                    }
-                });
-                auth.login();
-                assert(onAuthLogin.calledOnce);
-                assert.equal(onAuthLogin.lastCall.args[0], loginResult);
-                assert(auth.isAuthenticated());
-            });
-        });
         it('invokes delegate.login with a finishLogin callback', function () {
             var delegate = {
                 login: sinon.spy()
@@ -87,18 +71,17 @@ describe('auth/auth', function () {
         it('only uses first invocation of finishLogin', function () {
             var delegate = {
                 login: sinon.spy(function (finishLogin) {
-                    finishLogin(1);
-                    finishLogin(2);
-                    finishLogin(3);
+                    finishLogin(null, 1);
+                    finishLogin(null, 2);
+                    finishLogin(null, 3);
                 })
             };
             var onLogin = sinon.spy();
             auth.on('login', onLogin);
             auth.delegate(delegate);
-
             auth.login();
             assert(onLogin.calledOnce);
-            assert(onLogin.lastCall.args[0] === 1);
+            assert.ok(onLogin.lastCall.args[0] === 1, 'login was only fired once');
         });
         describe('when passed a callback', function () {
             it('the callback is called on finishLogin', function () {
@@ -137,7 +120,7 @@ describe('auth/auth', function () {
                 var onAuthLogin = sinon.spy();
                 auth.delegate({
                     login: function (finishLogin) {
-                        finishLogin(credentials);
+                        finishLogin(null, credentials);
                     }
                 });
                 auth.on('login', onAuthLogin);
@@ -172,22 +155,6 @@ describe('auth/auth', function () {
         });
     });
     describe('.logout()', function () {
-        describe('if delegate.logout.length === 0', function () {
-            it('assumes synchronous logout', function () {
-                var onAuthLogout = sinon.spy();
-                var logoutResult = null;
-                auth.on('logout', onAuthLogout);
-                auth.delegate({
-                    logout: function () {
-                        return logoutResult;
-                    }
-                });
-                auth.logout();
-                assert(onAuthLogout.calledOnce);
-                assert.equal(onAuthLogout.lastCall.args[0], logoutResult);
-                assert( ! auth.isAuthenticated());
-            });
-        });
         it('invokes delegate.logout with a finishLogout callback', function () {
             var delegate = {
                 logout: sinon.spy()
