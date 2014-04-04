@@ -21,7 +21,7 @@ auth.delegate({
     login: function (finishLogin) {
         log('login', arguments);
         var userId = Math.round(Math.random() * 10e9);
-        finishLogin('myToken'+userId);
+        finishLogin(null, 'myToken'+userId);
         // or if the user was not authenticated
         // finishLogin();
         // or if there was an error;

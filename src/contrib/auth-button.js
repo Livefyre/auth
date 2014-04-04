@@ -5,7 +5,7 @@ module.exports = function (auth, el, log) {
     var id = nextId++;
     log = log || getDefaultLog();
     function isLoggedIn () {
-        return auth.isAuthenticated();
+        return auth.get();
     }
     function getText () {
         return isLoggedIn() ? 'Log out' : 'Log in';

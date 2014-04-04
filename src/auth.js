@@ -110,10 +110,14 @@ Auth.prototype.delegate = function (newDelegate) {
 
 /**
  * Try to facilitate authentication (login) by the end user
- * @param callback {function} Function to call after login
+ * @param callbackOrUser {function|object} Function to call after login, or a user
+ *     if you have a user object to login
  * @public
  */
-Auth.prototype.login = function (callback) {
+Auth.prototype.login = function (callbackOrUser) {
+    if (callbackOrUser && typeof callbackOrUser !== 'function') {
+        return this._loginUser(callbackOrUser);
+    }
     log('Auth#login');
     var login = this._delegate.login;
     var finishLogin = callableOnce(function () {
@@ -127,21 +131,33 @@ Auth.prototype.login = function (callback) {
 };
 
 /**
+ * Handle the login of a specific user
+ */
+Auth.prototype._loginUser = function (users) {
+    this.emit('login', users);
+    for (var plugin in users) {
+        if (users.hasOwnProperty(plugin)) {
+            this.emit('login.'+plugin, users[plugin]);
+        }
+    }
+};
+
+/**
  * Invoked via the callback passed to the delegate's `.login` method
  * @param [err] An Error that ocurred when authenticating the end-user
  * @private
  */
-Auth.prototype._finishLogin = function (err, user) {
-    log('Auth#_finishLogin', err, user);
+Auth.prototype._finishLogin = function (err, credentials) {
+    log('Auth#_finishLogin', err, credentials);
     if (err) {
         this.emit('error', err);
         return;
     }
-    if (! user) {
-        log(['_finishLogin called without a truthy first parameter. The user',
-             'was not authenticated.'].join(' '));
+    if (! credentials) {
+        log(['_finishLogin called without a truthy second parameter. The user',
+             'cannot be authenticated.'].join(' '));
     }
-    this._authenticate(user);
+    this._authenticate(credentials);
 };
 
 /**
@@ -166,14 +182,13 @@ Auth.prototype.logout = function (callback) {
  * @param [err] An Error that ocurred when deauthenticating the end-user
  * @private
  */
-Auth.prototype._finishLogout = function (logoutStatus) {
+Auth.prototype._finishLogout = function (err, logoutStatus) {
     log('Auth#_finishLogout', logoutStatus);
-    var err = isError(logoutStatus);
     if (err) {
         this.emit('error', err);
         return;
     }
-    this._authenticate(null);
+    this.emit('logout');
 };
 
 /**
@@ -190,11 +205,15 @@ Auth.prototype.authenticate = function (credentials) {
  * @param credentials - Something to authenticate the user with
  */
 Auth.prototype._authenticate = function (credentials) {
-    if (credentials) {
-        this.emit('login', credentials);
-    } else {
-        this.emit('logout', credentials);
+    if ( ! credentials) {
+        return;
     }
+    for (var plugin in credentials) {
+        if (credentials.hasOwnProperty(plugin)) {
+            this.emit('authenticate.'+plugin, credentials[plugin]);
+        }
+    }
+    this.emit('authenticate', credentials);
 };
 
 /**
