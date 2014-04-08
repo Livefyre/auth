@@ -1,4 +1,4 @@
-var auth = require('auth');
+var auth = window.auth = require('auth');
 var log = require('debug')('auth-demo');
 var createAuthButton = require('auth/contrib/auth-button');
 var createAuthLog = require('auth/contrib/auth-log');
@@ -43,8 +43,8 @@ if (document.readyState === 'complete') {
 
 function onDomReady() {
     log('onDomReady');
-    var authLog = createAuthLog(document.getElementById('auth-log'));
-    createAuthButton(document.getElementById('auth-button1'), authLog);
-    createAuthButton(document.getElementById('auth-button2'), authLog);
+    var authLog = createAuthLog(auth, document.getElementById('auth-log'));
+    createAuthButton(auth, document.getElementById('auth-button1'), authLog);
+    createAuthButton(auth, document.getElementById('auth-button2'), authLog);
     authLog('ready');
 }
