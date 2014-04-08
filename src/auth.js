@@ -60,6 +60,7 @@ var bind = require('./util/bind');
  * @constructor
  */
 var Auth = module.exports = function () {
+    var loggedIn = false;
     var creds;
     EventEmitter.apply(this);
     this._delegate = {};
@@ -73,8 +74,12 @@ var Auth = module.exports = function () {
     // creds are private so these methods are added in the constructor
     var set = function set(u) {
         creds = u;
+        loggedIn = true;
     };
     var get = function get(name) {
+        if ( ! name) {
+            return loggedIn;
+        }
         return creds && creds[name];
     };
     this.get = get;
@@ -82,6 +87,7 @@ var Auth = module.exports = function () {
     this.on('login', set);
     this.on('logout', function () {
         creds = null;
+        loggedIn = false;
     });
 };
 inherits(Auth, EventEmitter);
