@@ -74,13 +74,15 @@ var Auth = module.exports = function () {
     var set = function set(u) {
         creds = u;
     };
-    var get = function get(u) {
-        return creds;
+    var get = function get(name) {
+        return creds && creds[name];
     };
     this.get = get;
     this.isAuthenticated = isAuthenticated.bind(this, get);
     this.on('login', set);
-    this.on('logout', set);
+    this.on('logout', function () {
+        creds = null;
+    });
 };
 inherits(Auth, EventEmitter);
 
