@@ -113,6 +113,7 @@ Auth.prototype.delegate = function (newDelegate) {
     if (newDelegate.logout) {
         this._delegate.logout = bind(newDelegate.logout, newDelegate);
     }
+    this.emit('delegate', newDelegate);
     return this;
 };
 
