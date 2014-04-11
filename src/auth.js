@@ -119,21 +119,14 @@ Auth.prototype.delegate = function (newDelegate) {
 
 /**
  * Check whether a delegate has been set
+ * @param delegateMethod {string} The name of the delegate method
  * @returns {Boolean}
  */
-Auth.prototype.hasDelegate = function () {
-    var hasLogin = false,
-        hasLogout = false;
-    for (var prop in this._delegate) {
-        if (this._delegate.hasOwnProperty(prop)) {
-            if (prop === 'login') {
-                hasLogin = true;
-            } else if (prop === 'logout') {
-                hasLogout = false;
-            }
-        }
+Auth.prototype.hasDelegate = function (delegateMethod) {
+    if (delegateMethod === 'login' || delegateMethod === 'logout') {
+        return this._delegate.hasOwnProperty(delegateMethod);
     }
-    return hasLogin && hasLogout;
+    return !!this._delegate;
 };
 
 /**
