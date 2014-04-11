@@ -113,7 +113,27 @@ Auth.prototype.delegate = function (newDelegate) {
     if (newDelegate.logout) {
         this._delegate.logout = bind(newDelegate.logout, newDelegate);
     }
+    this.emit('delegate', newDelegate);
     return this;
+};
+
+/**
+ * Check whether a delegate has been set
+ * @returns {Boolean}
+ */
+Auth.prototype.hasDelegate = function () {
+    var hasLogin = false,
+        hasLogout = false;
+    for (var prop in this._delegate) {
+        if (this._delegate.hasOwnProperty(prop)) {
+            if (prop === 'login') {
+                hasLogin = true;
+            } else if (prop === 'logout') {
+                hasLogout = false;
+            }
+        }
+    }
+    return hasLogin && hasLogout;
 };
 
 /**
