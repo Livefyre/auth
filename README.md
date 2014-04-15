@@ -4,7 +4,7 @@ Web Components frequently need to know about and/or trigger authentication by
 the end-user, but should not need to be tightly-coupled to any one authentication strategy.
 
 With `auth`
-* **Site Operators*** `auth.delegate(obj)` the details of how they want components to trigger login, logout, and viewProfile
+* **Site Operators** `auth.delegate(obj)` the details of how they want components to trigger login, logout, and viewProfile
 * **Component Developers** write components against a common set of methods, e.g. `auth.login(errback)`
 * `auth` *plugins* can watch for events on `auth`. For example, [`auth-livefyre`](//github.com/gobengo/auth-livefyre) watches for `authenticate.livefyre` events, authenticates the user with the included credentials, and then calls `auth.login({ livefyre: livefyreUser })`
 
