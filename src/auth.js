@@ -62,6 +62,7 @@ var bind = require('./util/bind');
 var Auth = module.exports = function () {
     var loggedIn = false;
     var creds;
+    var isAuthenticated = false;
     EventEmitter.apply(this);
     this._delegate = {};
     this.delegate({
@@ -72,33 +73,38 @@ var Auth = module.exports = function () {
         }
     });
     // creds are private so these methods are added in the constructor
-    var set = function set(u) {
-        creds = u;
-        loggedIn = true;
-    };
     var get = function get(name) {
         if ( ! name) {
             return loggedIn;
         }
         return creds && creds[name];
     };
-    this.get = get;
-    this.isAuthenticated = isAuthenticated.bind(this, get);
-    this.on('login', set);
+
+    this.on('login', function set(u) {
+        creds = u;
+        loggedIn = true;
+        isAuthenticated = true;
+    });
+    this.on('authenticate', function () {
+        isAuthenticated = true;
+    });
     this.on('logout', function () {
         creds = null;
         loggedIn = false;
+        isAuthenticated = false;
     });
+
+    this.get = get;
+
+    /**
+     * Return whether the end-user is currently authenticated
+     * @returns {Boolean}
+     */
+    this.isAuthenticated = function () {
+        return isAuthenticated;
+    };
 };
 inherits(Auth, EventEmitter);
-
-/**
- * Return whether the end-user is currently authenticated
- * @returns {Boolean}
- */
-function isAuthenticated(get) {
-    return Boolean(get());
-}
 
 /**
  * Delegate auth actions to the provided object
@@ -139,13 +145,14 @@ Auth.prototype.login = function (callbackOrUser) {
     if (callbackOrUser && typeof callbackOrUser !== 'function') {
         return this._loginUser(callbackOrUser);
     }
+    var callback = callbackOrUser;
     log('Auth#login');
     var login = this._delegate.login;
     var finishLogin = callableOnce(function () {
+        this._finishLogin.apply(this, arguments);
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
         }
-        this._finishLogin.apply(this, arguments);
     }.bind(this));
     // finishLogin should be called by the delegate.logout when done
     login(finishLogin);
@@ -189,10 +196,10 @@ Auth.prototype.logout = function (callback) {
     log('Auth#logout');
     var logout = this._delegate.logout;
     var finishLogout = callableOnce(function () {
+        this._finishLogout.apply(this, arguments);
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
         }
-        this._finishLogout.apply(this, arguments);
     }.bind(this));
     // finishLogout should be called by the delegate.logout when done
     logout(finishLogout);

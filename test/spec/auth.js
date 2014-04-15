@@ -20,35 +20,29 @@ describe('auth/auth', function () {
         it('returns falsy when the user has not logged in', function () {
             assert( ! auth.get());
         });
-        it('returns truthy when the user has logged in', function () {
-            auth.delegate({
-                login: function (finishLogin) {
-                    finishLogin(null, 'hi');
-                }
+        it('returns named logins if passed a name', function (done) {
+            var onLogin = sinon.spy(function () {
+                assert(auth.get());
+                auth.logout(function () {
+                    assert( ! auth.get());
+                    done();
+                });                
             });
-            auth.login();
-            assert(auth.get());
-            auth.logout();
-            assert( ! auth.get());
+            auth.on('login', onLogin);
+            auth.login({
+                vendor: 'v'
+            });
         });
     });
     describe('.authenticate()', function () {
         describe('when passed a truthy parameter', function () {
-            it('auth emits a login event', function () {
-                var onLogin = sinon.spy();
-                auth.on('login', onLogin);
+            it('auth emits an authenticate event', function (done) {
+                var onAuthenticate = sinon.spy(function (credentials) {
+                    assert(auth.isAuthenticated());
+                    done();
+                });
+                auth.on('authenticate', onAuthenticate);
                 auth.authenticate('t');
-                assert(onLogin.calledOnce);
-                assert(auth.isAuthenticated());
-            });
-        });
-        describe('when passed a falsy parameter', function () {
-            it('auth emits a logout event', function () {
-                var onLogout = sinon.spy();
-                auth.on('logout', onLogout);
-                auth.authenticate(false);
-                assert(onLogout.calledOnce);
-                assert( ! auth.isAuthenticated());
             });
         });
     });
@@ -68,7 +62,7 @@ describe('auth/auth', function () {
             assert.typeOf(finishLogin, 'function',
                 'delegate.login arg is a callback function');
         });
-        it('only uses first invocation of finishLogin', function () {
+        it('only uses first invocation of finishLogin', function (done) {
             var delegate = {
                 login: sinon.spy(function (finishLogin) {
                     finishLogin(null, 1);
@@ -76,57 +70,76 @@ describe('auth/auth', function () {
                     finishLogin(null, 3);
                 })
             };
-            var onLogin = sinon.spy();
-            auth.on('login', onLogin);
             auth.delegate(delegate);
-            auth.login();
-            assert(onLogin.calledOnce);
-            assert.ok(onLogin.lastCall.args[0] === 1, 'login was only fired once');
+            var onAuthenticate = sinon.spy();
+            auth.on('authenticate', onAuthenticate);
+            auth.login(function (err) {
+                assert(onAuthenticate.calledOnce);
+                assert.ok(onAuthenticate.lastCall.args[0] === 1, 'login was only fired once');
+                done(err);
+            });
+        });
+        describe('when passed a truthy parameter', function () {
+            it('auth emits a login event', function (done) {
+                var onLogin = sinon.spy(function (credentials) {
+                    assert(auth.isAuthenticated());
+                    done();
+                });
+                auth.on('login', onLogin);
+                auth.login('t');
+            });
         });
         describe('when passed a callback', function () {
-            it('the callback is called on finishLogin', function () {
+            it('the callback is called on finishLogin', function (done) {
                 var loginError = new Error();
                 auth.delegate({
                     login: function (finishLogin) {
                         finishLogin(loginError);
                     }
                 });
-                var loginCallback = sinon.spy();
+                var loginCallback = sinon.spy(function (err, creds) {
+                    assert.equal(err, loginError);
+                    done();
+                });
                 auth.login(loginCallback);
-                assert(loginCallback.calledOnce);
-                assert.equal(loginCallback.lastCall.args[0], loginError);
             });
-            it('the callback is not called by another login invocation', function () {
-                var finishLogins = [];
-                var afterLogin1 = sinon.spy();
-                var afterLogin2 = sinon.spy();
+            it('the callback is not called by another login invocation', function (done) {
+                var i = 0;
+                function increment() {
+                    return ++i;
+                }
+                var afterLogin1 = sinon.spy(increment);
+                var afterLogin2 = sinon.spy(increment);
                 auth.delegate({
                     login: function (finishLogin) {
-                        finishLogins.push(finishLogin);
+                            finishLogin(null, 'token');
                     }
                 });
+
                 auth.login(afterLogin1);
                 auth.login(afterLogin2);
-                
-                var finishLogin1 = finishLogins[0];
-                finishLogin1('token1');
-                assert(afterLogin1.calledOnce);
-                assert(afterLogin2.callCount === 0);
+
+                var waitInterval = setInterval(function () {
+                    console.log('incr', i);
+                    if (i !== 2) {
+                        return;
+                    }
+                    clearInterval(waitInterval);
+                    assert.ok(afterLogin1.calledOnce);
+                    assert.ok(afterLogin2.calledOnce);
+                    done();
+                }, 200);
             });
         });
         describe('passing a non-error to finishLogin', function () {
-            it('auth emits a login event', function () {
+            it('auth emits a login event', function (done) {
                 var credentials = 'token';
-                var onAuthLogin = sinon.spy();
-                auth.delegate({
-                    login: function (finishLogin) {
-                        finishLogin(null, credentials);
-                    }
+                var onAuthLogin = sinon.spy(function (creds) {
+                    assert.equal(creds, credentials);
+                    done();
                 });
                 auth.on('login', onAuthLogin);
-                auth.login();
-                assert(onAuthLogin.calledOnce);
-                assert.equal(onAuthLogin.args[0], credentials);
+                auth.login(credentials);
             });
         });
         describe('passing an Error to finishLogin', function () {
