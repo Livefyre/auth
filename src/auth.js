@@ -93,6 +93,9 @@ var Auth = module.exports = function () {
         loggedIn = false;
         isAuthenticated = false;
     });
+    this.on('error', function (err) {
+        log(err);
+    });
 
     this.get = get;
 
