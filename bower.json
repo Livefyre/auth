@@ -1,6 +1,6 @@
 {
   "name": "auth",
-  "version": "0.4.4-beta",
+  "version": "0.0.1",
   "main": "dist/auth.min.js",
   "devDependencies": {
     "almond": "0.2.6",
