@@ -65,17 +65,11 @@ var Auth = module.exports = function () {
     var isAuthenticated = false;
     EventEmitter.apply(this);
     this._delegate = {};
-    this.delegate({
-        login: log.bind(log, 'default login'),
-        logout: function (loggedOut) {
-            log.bind(log, 'default logout');
-            loggedOut();
-        }
-    });
+
     // creds are private so these methods are added in the constructor
     var get = function get(name) {
         if ( ! name) {
-            return loggedIn;
+            return creds;
         }
         return creds && creds[name];
     };
@@ -198,6 +192,9 @@ Auth.prototype._finishLogin = function (err, credentials) {
 Auth.prototype.logout = function (callback) {
     log('Auth#logout');
     var logout = this._delegate.logout;
+    if ( ! logout) {
+        callback(new Error('No logout auth delegate'));
+    }
     var finishLogout = callableOnce(function () {
         this._finishLogout.apply(this, arguments);
         if (typeof callback === 'function') {

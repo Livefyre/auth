@@ -21,6 +21,11 @@ describe('auth/auth', function () {
             assert( ! auth.get());
         });
         it('returns named logins if passed a name', function (done) {
+            auth.delegate({
+                logout: function (done) {
+                    done();
+                }
+            });
             var onLogin = sinon.spy(function () {
                 assert(auth.get());
                 auth.logout(function () {
