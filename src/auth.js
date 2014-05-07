@@ -192,9 +192,18 @@ Auth.prototype._finishLogin = function (err, credentials) {
 Auth.prototype.logout = function (callback) {
     log('Auth#logout');
     var logout = this._delegate.logout;
+    var noDelegateError = new Error('No logout auth delegate');
+
+    // Error if there is no logout delegate
     if ( ! logout) {
-        callback(new Error('No logout auth delegate'));
+        if (typeof callback === 'function') {
+            callback(noDelegateError);
+        } else {
+            throw noDelegateError;
+        }
+        return;
     }
+
     var finishLogout = callableOnce(function () {
         this._finishLogout.apply(this, arguments);
         if (typeof callback === 'function') {

@@ -188,6 +188,12 @@ describe('auth/auth', function () {
             assert.typeOf(finishLogout, 'function',
                 'delegate.logout arg is a callback function');
         });
+        it('throws if no logout delegate and no errback passed', function () {
+            function logout() {
+                auth.logout();
+            }
+            assert.throws(logout, 'No logout auth delegate');
+        });
         it('emits a logout event', function () {
             auth.delegate({
                 logout: function (auth) { auth(); }
