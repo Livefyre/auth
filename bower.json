@@ -1,17 +1,16 @@
 {
   "name": "auth",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist/auth.min.js",
   "devDependencies": {
     "almond": "0.2.6",
-    "base64": "git@github.com:ross-pfahler/Base64.js.git#~0.3.2",
     "cajon": "git@github.com:requirejs/cajon.git#~0.1.11",
-    "event-emitter": "git://github.com/Livefyre/event-emitter.git#~0.0.1",
-    "inherits": "git://github.com/Livefyre/inherits.git",
-    "js-md5": "~1.1.0",
     "sinonjs": "~1.7.3"
   },
   "dependencies": {
+    "base64": "git@github.com:ross-pfahler/Base64.js.git#~0.3.2",
+    "event-emitter": "git://github.com/Livefyre/event-emitter.git#~0.0.1",
+    "inherits": "git://github.com/Livefyre/inherits.git",
     "debug": "visionmedia/debug#~0.7.4"
   }
 }
