@@ -1,6 +1,6 @@
 {
   "name": "auth",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "dist/auth.min.js",
   "devDependencies": {
     "almond": "0.2.6",
@@ -8,7 +8,7 @@
     "sinonjs": "~1.7.3"
   },
   "dependencies": {
-    "base64": "git@github.com:ross-pfahler/Base64.js.git#~0.3.2",
+    "base64": "git://github.com/ross-pfahler/Base64.js.git#~0.3.2",
     "event-emitter": "git://github.com/Livefyre/event-emitter.git#~0.0.1",
     "inherits": "git://github.com/Livefyre/inherits.git",
     "debug": "visionmedia/debug#~0.7.4"
