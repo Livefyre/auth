@@ -31,7 +31,7 @@ describe('auth/auth', function () {
                 auth.logout(function () {
                     assert( ! auth.get());
                     done();
-                });                
+                });
             });
             auth.on('login', onLogin);
             auth.login({
@@ -227,12 +227,34 @@ describe('auth/auth', function () {
                 });
                 auth.logout(afterLogout1);
                 auth.logout(afterLogout2);
-                
+
                 var finishLogout1 = finishLogouts[0];
                 finishLogout1();
                 assert(afterLogout1.calledOnce);
                 assert(afterLogout2.callCount === 0);
             });
+        });
+    });
+    describe('.viewProfile()', function () {
+        it('invokes delegate.viewProfile with the user object', function (done) {
+            auth.delegate({
+                viewProfile: function (user) {
+                    assert(user);
+                    done();
+                }
+            });
+            auth.viewProfile(true);
+        });
+    });
+    describe('.editProfile()', function () {
+        it('invokes delegate.editProfile', function (done) {
+            auth.delegate({
+                editProfile: function (user) {
+                    assert(user);
+                    done();
+                }
+            });
+            auth.editProfile(true);
         });
     });
 });

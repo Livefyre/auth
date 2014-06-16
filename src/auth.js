@@ -116,6 +116,12 @@ Auth.prototype.delegate = function (newDelegate) {
     if (newDelegate.logout) {
         this._delegate.logout = bind(newDelegate.logout, newDelegate);
     }
+    if (newDelegate.viewProfile) {
+        this._delegate.viewProfile = bind(newDelegate.viewProfile, newDelegate);
+    }
+    if (newDelegate.editProfile) {
+        this._delegate.editProfile = bind(newDelegate.editProfile, newDelegate);
+    }
     this.emit('delegate', newDelegate);
     return this;
 };
@@ -251,6 +257,22 @@ Auth.prototype._authenticate = function (credentials) {
         }
     }
     this.emit('authenticate', credentials);
+};
+
+/**
+ * View the user's profile
+ * @param {object} user
+ */
+Auth.prototype.viewProfile = function (user) {
+    this._delegate.viewProfile(user);
+};
+
+/**
+ * Edit the user's profile
+ * @param {object} user
+ */
+Auth.prototype.editProfile = function (user) {
+    this._delegate.editProfile(user);
 };
 
 /**
