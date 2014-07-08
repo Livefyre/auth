@@ -151,12 +151,12 @@ Auth.prototype.login = function (callbackOrUser) {
     var callback = callbackOrUser;
     log('Auth#login');
     var login = this._delegate.login;
-    var finishLogin = callableOnce(function () {
+    var finishLogin = bind(callableOnce(function () {
         this._finishLogin.apply(this, arguments);
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
         }
-    }.bind(this));
+    }, this));
     // finishLogin should be called by the delegate.logout when done
     login(finishLogin);
 };
@@ -210,12 +210,12 @@ Auth.prototype.logout = function (callback) {
         return;
     }
 
-    var finishLogout = callableOnce(function () {
+    var finishLogout = bind(callableOnce(function () {
         this._finishLogout.apply(this, arguments);
         if (typeof callback === 'function') {
             callback.apply(this, arguments);
         }
-    }.bind(this));
+    }, this));
     // finishLogout should be called by the delegate.logout when done
     logout(finishLogout);
 };
