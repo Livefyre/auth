@@ -39,6 +39,38 @@ describe('auth/auth', function () {
             });
         });
     });
+    it('.forEach() is called with each user', function (done) {
+        auth.delegate({
+            logout: function (done) {
+                done();
+            }
+        });
+        // we'll get a promise before and after
+        // the login event
+        var onForEachUser1 = sinon.spy();
+        auth.forEach(onForEachUser1);
+        auth.login({
+            vendor: 'v'
+        });
+
+        var onForEachUser2 = sinon.spy();
+        auth.forEach(onForEachUser2);
+        auth.login({
+            vendor: 'z'
+        });
+
+        var onForEachUser3 = sinon.spy();
+        auth.forEach(onForEachUser3);
+
+        auth.promise().then(function (user) {
+            assert.equal(onForEachUser1.callCount, 2);
+            assert.equal(onForEachUser2.callCount, 2);
+            assert.equal(onForEachUser3.callCount, 1);
+            assert.ok(user);
+            assert.ok(user.vendor);
+            done();
+        });
+    });
     describe('.authenticate()', function () {
         describe('when passed a truthy parameter', function () {
             it('auth emits an authenticate event', function (done) {

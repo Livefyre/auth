@@ -104,6 +104,22 @@ var Auth = module.exports = function () {
 inherits(Auth, EventEmitter);
 
 /**
+ * Call a function forEach known user, including the current
+ * @param cb {function}
+ * @param type {string} only get login events for one service
+ */
+Auth.prototype.forEach = function (type, cb) {
+    if (typeof type === 'function') {
+        cb = type;
+        type = undefined;
+    }
+    var auth = this;
+    var currentUser = auth.get(type);
+    if (currentUser) cb(currentUser);
+    auth.on('login', cb);
+};
+
+/**
  * Delegate auth actions to the provided object
  * @param delegate {object} The object to delegate actions to.
  *     It should implement .login, .logout functions.
