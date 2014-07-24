@@ -35,7 +35,13 @@ On load, a Site Operator should use the `.delegate` method to configure this Aut
         // if there was an error
         logout: function (finishLogout) {
             finishLogout();
-        }
+        },
+
+        // Called when a component would like to view the user's profile page
+        viewProfile: function () {},
+
+        // Called when a component would like to edit the user's profile
+        editProfile: function () {}
     });
 
 On page load, the user may already have authentication credentials without needing to login again. In this case, a Site Operator should call
