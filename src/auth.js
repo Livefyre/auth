@@ -129,9 +129,13 @@ Auth.prototype.delegate = function (newDelegate) {
 
 /**
  * Check whether a delegate has been set
+ * @param {string} [method]
  * @returns {Boolean}
  */
-Auth.prototype.hasDelegate = function () {
+Auth.prototype.hasDelegate = function (method) {
+    if (typeof method === 'string') {
+        return this._delegate && this._delegate.hasOwnProperty(method);
+    }
     return !!this._delegate;
 };
 

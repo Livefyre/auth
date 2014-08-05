@@ -257,4 +257,27 @@ describe('auth/auth', function () {
             auth.editProfile(true);
         });
     });
+    describe('.hasDelegate()', function () {
+        it('returns false if no delegate', function () {
+            assert(!auth.hasDelegate());
+        });
+        it('returns true if delegate', function () {
+            auth.delegate({});
+            assert(auth.hasDelegate());
+        });
+        it('returns false if no delegate method', function () {
+            auth.delegate({
+                logout: function (user) {
+                }
+            });
+            assert(!auth.hasDelegate('login'));
+        });
+        it('returns true if delegate method', function () {
+            auth.delegate({
+                logout: function (user) {
+                }
+            });
+            assert(auth.hasDelegate('logout'));
+        });
+    });
 });
