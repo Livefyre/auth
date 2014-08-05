@@ -64,7 +64,7 @@ var Auth = module.exports = function () {
     var creds;
     var isAuthenticated = false;
     EventEmitter.apply(this);
-    this._delegate = {};
+    this._delegate = false;
 
     // creds are private so these methods are added in the constructor
     var get = function get(name) {
@@ -110,6 +110,7 @@ inherits(Auth, EventEmitter);
  */
 Auth.prototype.delegate = function (newDelegate) {
     log('Auth#delegate', newDelegate);
+    this._delegate = {};
     if (newDelegate.login) {
         this._delegate.login = bind(newDelegate.login, newDelegate);
     }
@@ -128,13 +129,9 @@ Auth.prototype.delegate = function (newDelegate) {
 
 /**
  * Check whether a delegate has been set
- * @param delegateMethod {string} The name of the delegate method
  * @returns {Boolean}
  */
-Auth.prototype.hasDelegate = function (delegateMethod) {
-    if (delegateMethod === 'login' || delegateMethod === 'logout') {
-        return this._delegate.hasOwnProperty(delegateMethod);
-    }
+Auth.prototype.hasDelegate = function () {
     return !!this._delegate;
 };
 
