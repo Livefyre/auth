@@ -257,6 +257,21 @@ describe('auth/auth', function () {
             auth.editProfile(true);
         });
     });
+    describe('.forEachAuthentication()', function () {
+        it('invokes delegate.forEachAuthentication with a callback that invokes ._authenticate', function (done) {
+            auth._authenticate = function (credentials) {
+                assert(credentials.provider ===  'tokeny');
+                done();
+            }
+            var userLogin = function (cb) {
+                cb({provider: 'tokeny'});
+            }
+            auth.delegate({
+                forEachAuthentication: userLogin
+            });
+            userLogin();
+        });
+    });
     describe('.hasDelegate()', function () {
         it('returns false if no delegate', function () {
             assert(!auth.hasDelegate());

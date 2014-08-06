@@ -123,6 +123,13 @@ Auth.prototype.delegate = function (newDelegate) {
     if (newDelegate.editProfile) {
         this._delegate.editProfile = bind(newDelegate.editProfile, newDelegate);
     }
+    // a user may already be logged in, or may log in through means
+    // that are not explicit delegate methods
+    if (newDelegate.forEachAuthentication) {
+        newDelegate.forEachAuthentication(bind(function (credentials) {
+            this._authenticate(credentials);
+        }, this));
+    }
     this.emit('delegate', newDelegate);
     return this;
 };
