@@ -295,4 +295,13 @@ describe('auth/auth', function () {
             assert(auth.hasDelegate('logout'));
         });
     });
+    describe('.plugin', function () {
+        it('passes auth to the plugin function', function () {
+            var plugin = sinon.spy();
+            var resultOfPlugin = auth.plugin(plugin);
+            assert.equal(plugin.callCount, 1);
+            assert.equal(plugin.firstCall.args[0], auth);
+            assert.equal(resultOfPlugin, auth);
+        });
+    });
 });

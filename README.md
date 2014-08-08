@@ -92,6 +92,8 @@ One may wish to make modules that can monitor `auth` activity on the page. `auth
 
 ### Events
 
+Use events with `auth.on(eventName, handler)`.
+
 #### login
 
 A user has logged in. Usually this is emitted after something passes a non-function to `auth.login()`. Handlers will be passed an object indicating the providers that were logged in.
@@ -135,3 +137,14 @@ Some modules may only care about certain `providerNames` that are passed as keys
     auth.on('authenticate.providerName', function (token) {
         assert.equal(token, 'kajsdfkasdjfajdsf');
     });
+
+## Plugins
+
+Auth plugins are functions which are passed an auth instance. They can then listen to auth events or invoke methods.
+
+    auth.plugin(authLogger);
+    function authLogger(auth) {
+        auth.on('login', function () {
+            console.log('Someone logged in!');
+        });
+    }
