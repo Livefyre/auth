@@ -284,6 +284,17 @@ Auth.prototype.editProfile = function (user) {
 };
 
 /**
+ * Add a plugin to auth. A plugin is just a function
+ * that takes an auth instance. Plugins should
+ * mostly listen to auth events and invoke existing methods,
+ * not mess with auth
+ */
+Auth.prototype.plugin = function (plugin) {
+    plugin(this);
+    return this;
+}
+
+/**
  * Return the provided param if it is an error
  * else return null
  */
