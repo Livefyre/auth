@@ -3,6 +3,7 @@
   "description": "Authentication for Livefyre projects",
   "author": "Livefyre <support@livefyre.com>",
   "repository": "https://github.com/Livefyre/auth",
+  "license": "MIT",
   "contributors": {
     "name": "Benjamin Goering",
     "email": "ben@livefyre.com"
