@@ -76,12 +76,14 @@ describe('auth/auth', function () {
                 })
             };
             auth.delegate(delegate);
-            var onAuthenticate = sinon.spy();
+            var onAuthenticate = sinon.spy(function (creds, callback) {
+                callback();
+            });
             auth.on('authenticate', onAuthenticate);
             auth.login(function (err) {
                 assert(onAuthenticate.calledOnce);
-                assert.ok(onAuthenticate.lastCall.args[0] === 1, 'login was only fired once');
-                done(err);
+                assert.ok(onAuthenticate.getCall(0).args[0] === 1, 'login was only fired once');
+                done();
             });
         });
         describe('when passed a truthy parameter', function () {
@@ -96,17 +98,20 @@ describe('auth/auth', function () {
         });
         describe('when passed a callback', function () {
             it('the callback is called on finishLogin', function (done) {
-                var loginError = new Error();
                 auth.delegate({
                     login: function (finishLogin) {
-                        finishLogin(loginError);
+                        finishLogin(null, 1);
                     }
                 });
-                var loginCallback = sinon.spy(function (err, creds) {
-                    assert.equal(err, loginError);
+                var onAuthenticate = sinon.spy(function (creds, callback) {
+                    callback();
+                });
+                auth.on('authenticate', onAuthenticate);
+                auth.login(function (err, creds) {
+                    assert.equal(err, null);
+                    assert.equal(creds, 1);
                     done();
                 });
-                auth.login(loginCallback);
             });
             it('the callback is not called by another login invocation', function (done) {
                 var i = 0;
@@ -117,9 +122,14 @@ describe('auth/auth', function () {
                 var afterLogin2 = sinon.spy(increment);
                 auth.delegate({
                     login: function (finishLogin) {
-                            finishLogin(null, 'token');
+                        finishLogin(null, 'token');
                     }
                 });
+
+                var onAuthenticate = sinon.spy(function (creds, callback) {
+                    callback();
+                });
+                auth.on('authenticate', onAuthenticate);
 
                 auth.login(afterLogin1);
                 auth.login(afterLogin2);

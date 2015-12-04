@@ -159,14 +159,13 @@ Auth.prototype.login = function (callbackOrUser) {
     var callback = callbackOrUser;
     log('Auth#login');
     var login = this._delegate.login;
-    var finishLogin = bind(callableOnce(function () {
-        this._finishLogin.apply(this, arguments);
-        if (typeof callback === 'function') {
-            callback.apply(this, arguments);
-        }
-    }, this));
-    // finishLogin should be called by the delegate.logout when done
-    login(finishLogin);
+    var self = this;
+
+    login(callableOnce(function () {
+        var args = Array.prototype.slice.call(arguments);
+        args.push(function () { callback.apply(self, args); });
+        self._finishLogin.apply(self, args);
+    }));
 };
 
 /**
@@ -186,7 +185,7 @@ Auth.prototype._loginUser = function (users) {
  * @param [err] An Error that ocurred when authenticating the end-user
  * @private
  */
-Auth.prototype._finishLogin = function (err, credentials) {
+Auth.prototype._finishLogin = function (err, credentials, callback) {
     log('Auth#_finishLogin', err, credentials);
     if (err) {
         this.emit('error', err);
@@ -196,7 +195,7 @@ Auth.prototype._finishLogin = function (err, credentials) {
         log(['_finishLogin called without a truthy second parameter. The user',
              'cannot be authenticated.'].join(' '));
     }
-    this._authenticate(credentials);
+    this._authenticate(credentials, callback);
 };
 
 /**
@@ -255,16 +254,16 @@ Auth.prototype.authenticate = function (credentials) {
  * @protected
  * @param credentials - Something to authenticate the user with
  */
-Auth.prototype._authenticate = function (credentials) {
+Auth.prototype._authenticate = function (credentials, callback) {
     if ( ! credentials) {
         return;
     }
     for (var plugin in credentials) {
         if (credentials.hasOwnProperty(plugin)) {
-            this.emit('authenticate.'+plugin, credentials[plugin]);
+            this.emit('authenticate.'+plugin, credentials[plugin], callback);
         }
     }
-    this.emit('authenticate', credentials);
+    this.emit('authenticate', credentials, callback);
 };
 
 /**
