@@ -90,6 +90,17 @@ If `auth.login` is passed an argument other than a function, it will trigger log
 
 One may wish to make modules that can monitor `auth` activity on the page. `auth` throws several events that are useful for this.
 
+### Methods
+
+#### forEach
+
+Call a function with each known user to auth, including the currently logged
+in user, if there is one.
+
+    auth.forEach(function (user) {
+        analytics.track('login');
+    })
+
 ### Events
 
 Use events with `auth.on(eventName, handler)`.
