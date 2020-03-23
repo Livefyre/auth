@@ -1,11 +1,11 @@
 {
   "name": "auth",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "src/main.js",
   "devDependencies": {
     "almond": "0.2.6",
     "cajon": "git@github.com:requirejs/cajon.git#~0.1.11",
-    "sinonjs": "~1.7.3"
+    "sinonjs": "~1.17.1"
   },
   "dependencies": {
     "base64": "git://github.com/ross-pfahler/Base64.js.git#~0.3.2",
